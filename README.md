@@ -16,7 +16,7 @@ dataset = load_dataset("pqthinh232/HCMUS-Vietnamese-Image-captioning-for-visuall
 
 ---
 
-### 3. Chú thích các file
+### Chú thích các file
 
 Dựa trên ảnh của bạn, hãy phân loại như sau:
 
