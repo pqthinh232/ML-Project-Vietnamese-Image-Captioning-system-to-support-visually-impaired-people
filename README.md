@@ -1,4 +1,4 @@
-# ML-Lab01-Vietnamese-Image-Captioning-system-to-support-visually-impaired-people
+# ML-Project-Vietnamese-Image-Captioning-system-to-support-visually-impaired-people
 
 ## 📊 Dataset
 Do kích thước tệp lớn, toàn bộ tập dữ liệu hình ảnh và nhãn được lưu trữ trên **Hugging Face**.
