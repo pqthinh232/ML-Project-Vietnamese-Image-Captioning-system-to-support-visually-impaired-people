@@ -25,7 +25,7 @@ model = Qwen2VLForConditionalGeneration.from_pretrained(
 processor = AutoProcessor.from_pretrained(
     MODEL_ID,
     min_pixels=128 * 28 * 28,
-    max_pixels=384 * 28 * 28
+    max_pixels=768 * 28 * 28
 )
 
 model.eval()
@@ -50,9 +50,8 @@ app.add_middleware(
 
 
 DEFAULT_PROMPT = (
-    "Viết đúng một câu ngắn bằng tiếng Việt, mô tả vật cản hoặc tình huống nguy hiểm chính "
-    "trong ảnh và đưa ra hướng dẫn di chuyển an toàn cho người khiếm thị. "
-    "Không giải thích thêm."
+    "Viết đúng một câu ngắn (tối đa 60 từ) bằng tiếng Việt, mô tả vật thể hoặc chướng ngại "
+    "chính trong ảnh và đưa ra hướng dẫn di chuyển an toàn cho người mù, không giải thích thêm."
 )
 
 
@@ -66,7 +65,7 @@ def resize_image(image: Image.Image, max_side: int = 768) -> Image.Image:
     new_width = int(width * scale)
     new_height = int(height * scale)
 
-    return image.resize((new_width, new_height))
+    return image.resize((new_width, new_height), resample= Image.LANCZOS)
 
 
 def generate_caption(image: Image.Image, prompt: str = DEFAULT_PROMPT) -> str:
@@ -105,7 +104,7 @@ def generate_caption(image: Image.Image, prompt: str = DEFAULT_PROMPT) -> str:
     with torch.inference_mode():
         generated_ids = model.generate(
             **inputs,
-            max_new_tokens=50,
+            max_new_tokens=60,
             do_sample=False
         )
 
