@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #000; /* Dark background for saving battery and reducing glare */
+  color: white;
+  overflow: hidden; /* Prevent scrolling, act like an app */
+  touch-action: manipulation; /* Disable double-tap to zoom */
+}
