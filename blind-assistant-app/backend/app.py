@@ -25,7 +25,7 @@ model = Qwen2VLForConditionalGeneration.from_pretrained(
 processor = AutoProcessor.from_pretrained(
     MODEL_ID,
     min_pixels=128 * 28 * 28,
-    max_pixels=768 * 28 * 28
+    max_pixels=768 * 768
 )
 
 model.eval()
