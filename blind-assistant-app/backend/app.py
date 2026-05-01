@@ -98,7 +98,8 @@ def generate_caption(image: Image.Image, prompt: str = DEFAULT_PROMPT) -> str:
         images=image_inputs,
         videos=video_inputs,
         padding=True,
-        return_tensors="pt"
+        return_tensors="pt",
+        max_pixels=768 * 768
     ).to(device)
 
     with torch.inference_mode():
