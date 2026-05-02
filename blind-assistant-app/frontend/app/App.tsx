@@ -10,7 +10,10 @@ function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
-  const [stream, setStream] = useState<MediaStream | null>(null);
+  const hasSpokenCameraReadyRef = useRef(false);
+  const isStartingCameraRef = useRef(false);
+  const streamRef = useRef<MediaStream | null>(null);
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [resultText, setResultText] = useState<string>('');
   const [latency, setLatency] = useState<number | null>(null);
@@ -18,45 +21,110 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [apiUrl, setApiUrl] = useState(() => localStorage.getItem('backend_api_url') || DEFAULT_API_URL);
   
-  const { initAudio, playBeep, vibrate, speak, stopSpeaking } = useAudioFeedback();
-
+  // const { initAudio, playBeep, vibrate, speak, stopSpeaking } = useAudioFeedback();
+  const {
+    initAudio,
+    playBeep,
+    playSuccessBeep,
+    playErrorBeep,
+    vibrate,
+    speak,
+    stopSpeaking,
+  } = useAudioFeedback();
   const handleSaveApiUrl = () => {
     localStorage.setItem('backend_api_url', apiUrl);
     setShowSettings(false);
     speak('Đã lưu cấu hình mạng');
   };
 
+  // const startCamera = async () => {
+  //   try {
+  //     const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+  //       video: { facingMode: 'environment' } // Prefer back camera
+  //     });
+  //     setStream(mediaStream);
+  //     if (videoRef.current) {
+  //       videoRef.current.srcObject = mediaStream;
+  //     }
+  //     speak('Đã bật máy ảnh. Hãy chạm hai lần vào bất kỳ đâu trên màn hình để chụp.');
+  //   } catch (err) {
+  //     console.error('Error accessing camera:', err);
+  //     speak('Không thể mở máy ảnh. Vui lòng cấp quyền.');
+  //   }
+  // };
+
+
   const startCamera = async () => {
+    if (streamRef.current || isStartingCameraRef.current) return;
+
+    isStartingCameraRef.current = true;
+
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } // Prefer back camera
+        video: { facingMode: 'environment' }
       });
-      setStream(mediaStream);
+
+      streamRef.current = mediaStream;
+
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
       }
-      speak('Đã bật máy ảnh. Hãy chạm hai lần vào bất kỳ đâu trên màn hình để chụp.');
+
+      if (!hasSpokenCameraReadyRef.current) {
+        hasSpokenCameraReadyRef.current = true;
+        speak(
+          'Đã bật máy ảnh. Hãy chạm hai lần vào bất kỳ đâu trên màn hình để chụp.',
+          500
+        );
+      }
     } catch (err) {
       console.error('Error accessing camera:', err);
       speak('Không thể mở máy ảnh. Vui lòng cấp quyền.');
+    } finally {
+      isStartingCameraRef.current = false;
     }
   };
 
+  // const stopCamera = () => {
+  //   if (stream) {
+  //     stream.getTracks().forEach(track => track.stop());
+  //     setStream(null);
+  //   }
+  // };
+
   const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
     }
   };
 
   // Turn on camera when app starts, if not showing settings
+  // React.useEffect(() => {
+  //   if (hasStarted && !showSettings) {
+  //     startCamera();
+  //   }
+  //   return () => stopCamera();
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [hasStarted, showSettings]);
+
+
   React.useEffect(() => {
     if (hasStarted && !showSettings) {
       startCamera();
     }
-    return () => stopCamera();
+
+    if (showSettings) {
+      stopCamera();
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasStarted, showSettings]);
+
 
   const sendImageToBackend = async (imageBlob: Blob) => {
     setIsProcessing(true);
@@ -98,15 +166,29 @@ function App() {
       if (data.latency_seconds !== undefined) {
         setLatency(data.latency_seconds);
       }
-      vibrate(500); // 500ms vibration indicating completion
-      speak(description);
+
+      // Báo hiệu AI đã nhận diện xong
+      // playBeep();
+      // vibrate([120, 80, 120]);
+
+      // // Đọc kết quả cho người dùng
+      // speak(description);
+      
+      playSuccessBeep();
+
+      const canVibrate = vibrate([120, 80, 120]);
+
+      // Đợi beep xong rồi mới đọc, tránh âm beep đè lên giọng đọc
+      speak(description, canVibrate ? 500 : 600);
+
 
     } catch (error) {
       console.error('API Error:', error);
       const errMsg = 'Lỗi kết nối hoặc máy chủ đang bận. Vui lòng thử lại.';
       setResultText(errMsg);
-      speak(errMsg);
-      vibrate([500, 200, 500]); // Error pattern
+      playErrorBeep();
+      vibrate([500, 200, 500]);
+      speak(errMsg, 700);
     } finally {
       setIsProcessing(false);
     }
@@ -178,7 +260,15 @@ function App() {
 
   const handleStartApp = () => {
     initAudio();
-    setHasStarted(true);
+
+    speak(
+      'Đang mở camera. Nếu có hộp thoại quyền, hãy dùng trình đọc màn hình để tìm nút Cho phép, rồi chạm hai lần để xác nhận.',
+      200
+    );
+
+    setTimeout(() => {
+      setHasStarted(true);
+    }, 4500);
   };
 
   if (!hasStarted) {
@@ -201,7 +291,7 @@ function App() {
         <div className="flex items-center mb-4 pt-4 shrink-0">
           <button 
             onClick={() => setShowSettings(false)}
-            className="p-3 bg-neutral-800 rounded-full mr-4 active:bg-neutral-700 flex items-center justify-center transition-colors"
+            className="p-3 bg-black/90 border-2 border-white rounded-full mr-4 active:bg-yellow-300 active:text-black flex items-center justify-center transition-colors"
             aria-label="Quay về"
           >
             <ArrowLeft size={24} />
@@ -258,7 +348,7 @@ function App() {
             e.stopPropagation();
             fileInputRef.current?.click();
           }}
-          className="p-4 bg-neutral-800/80 backdrop-blur-md rounded-full text-white pointer-events-auto shadow-lg active:bg-neutral-700 active:scale-95 transition-transform"
+          className="p-4 bg-black/90 border-2 border-white backdrop-blur-md rounded-full text-white pointer-events-auto shadow-lg active:bg-yellow-300 active:text-black active:scale-95 transition-transform"
           aria-label="Tải ảnh lên"
         >
           <ImageIcon size={28} />
@@ -278,7 +368,7 @@ function App() {
             e.stopPropagation();
             setShowSettings(true);
           }}
-          className="p-4 bg-neutral-800/80 backdrop-blur-md rounded-full text-white pointer-events-auto shadow-lg active:bg-neutral-700 active:scale-95 transition-transform flex items-center space-x-2"
+          className="p-4 bg-black/90 border-2 border-white backdrop-blur-md rounded-full text-white pointer-events-auto shadow-lg active:bg-yellow-300 active:text-black active:scale-95 transition-transform flex items-center space-x-2"
           aria-label="Cài đặt mã QR và API"
         >
           <QrCode size={24} />
@@ -309,20 +399,28 @@ function App() {
       {/* Replay Result Text Zone (If any result) */}
       {resultText && !isProcessing && (
         <div 
-          className="absolute top-24 left-4 right-4 z-20 bg-neutral-900/90 backdrop-blur-lg border border-neutral-700 p-6 rounded-3xl shadow-2xl active:bg-neutral-800 transition-colors cursor-pointer"
+          className="absolute top-24 left-4 right-4 z-20 bg-black/95 backdrop-blur-lg border-4 border-yellow-300 p-6 rounded-3xl shadow-2xl active:bg-neutral-800 transition-colors cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
             playBeep();
             speak(resultText);
           }}
+          role="button"
+          tabIndex={0}
+          aria-live="polite"
+          aria-label={`Kết quả nhận diện: ${resultText}. Chạm để nghe lại.`}
         >
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm text-neutral-400 font-medium uppercase tracking-wider">Kết quả (Chạm để nghe lại)</h3>
+            <h3 className="text-base text-yellow-300 font-bold uppercase tracking-wider">
+              Kết quả - Chạm để nghe lại
+            </h3>
             {latency !== null && (
               <span className="text-xs text-neutral-500 font-mono">{latency}s</span>
             )}
           </div>
-          <p className="text-xl md:text-2xl font-semibold leading-relaxed">{resultText}</p>
+          <p className="text-2xl md:text-3xl font-bold leading-relaxed text-white mt-3">
+            {resultText}
+          </p>
         </div>
       )}
 

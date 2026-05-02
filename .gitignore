@@ -1,0 +1,5 @@
+# Local dependencies / environments
+node_modules/
+.venv/
+venv/
+.env
