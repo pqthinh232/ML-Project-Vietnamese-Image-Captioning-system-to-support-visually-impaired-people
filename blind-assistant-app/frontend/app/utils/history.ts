@@ -2,7 +2,8 @@ import localforage from 'localforage';
 
 export interface HistoryItem {
   id: string;
-  imageBlob: Blob;
+  imageBlob?: Blob;      // For backwards compatibility
+  imageDataUrl?: string; // New field for reliable storage
   description: string;
   timestamp: number;
 }
@@ -10,11 +11,21 @@ export interface HistoryItem {
 const HISTORY_KEY = 'app_history_items';
 const MAX_HISTORY = 30;
 
-export const saveHistory = async (item: Omit<HistoryItem, 'id'>) => {
+export const saveHistory = async (item: { imageBlob: Blob; description: string; timestamp: number }) => {
   try {
+    // Generate base64 Data URL for robust storage on mobile browsers
+    const imageDataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(item.imageBlob);
+    });
+
     const currentHistory = await getHistory();
     const newItem: HistoryItem = {
-      ...item,
+      description: item.description,
+      timestamp: item.timestamp,
+      imageDataUrl: imageDataUrl,
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
     };
     

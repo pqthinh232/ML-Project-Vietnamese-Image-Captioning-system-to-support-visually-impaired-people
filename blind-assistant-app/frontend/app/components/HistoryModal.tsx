@@ -7,21 +7,34 @@ interface HistoryModalProps {
   onPlay: (text: string) => void;
 }
 
-const HistoryImage = ({ blob }: { blob: Blob }) => {
+const HistoryImage = ({ item }: { item: HistoryItem }) => {
   const [url, setUrl] = useState<string>('');
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    if (blob) {
+    if (item.imageDataUrl) {
+      setUrl(item.imageDataUrl);
+    } else if (item.imageBlob) {
       try {
-        const objectUrl = URL.createObjectURL(blob);
-        setUrl(objectUrl);
-        return () => URL.revokeObjectURL(objectUrl);
-      } catch (error) {
-        console.error('Failed to create object URL for blob', error);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setUrl(reader.result as string);
+        };
+        reader.onerror = () => {
+          setError(true);
+          console.error('Failed to read backwards-compatible blob');
+        };
+        reader.readAsDataURL(item.imageBlob as Blob);
+      } catch (err) {
+        setError(true);
+        console.error('Failed to process blob for history imaging', err);
       }
+    } else {
+      setError(true);
     }
-  }, [blob]);
+  }, [item]);
 
+  if (error) return <div className="w-full h-full bg-neutral-800 flex items-center justify-center text-xs text-neutral-500">Lỗi ảnh</div>;
   if (!url) return <div className="w-full h-full bg-neutral-800 animate-pulse"></div>;
 
   return (
@@ -82,7 +95,7 @@ export function HistoryModal({ onClose, onPlay }: HistoryModalProps) {
             >
               <div className="flex p-4">
                 <div className="w-24 h-24 shrink-0 rounded-xl overflow-hidden bg-neutral-800 mr-4 flex items-center justify-center">
-                  <HistoryImage blob={item.imageBlob} />
+                  <HistoryImage item={item} />
                 </div>
                 <div className="flex-1 overflow-hidden flex flex-col justify-center">
                   <p className="text-white text-lg font-medium leading-snug">
