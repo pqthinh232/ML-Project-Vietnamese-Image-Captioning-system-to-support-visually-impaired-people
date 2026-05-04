@@ -1,7 +1,9 @@
 import React, { useRef, useState } from 'react';
-import { Image as ImageIcon, Settings, QrCode, ArrowLeft, Loader2 } from 'lucide-react';
+import { Image as ImageIcon, Settings, QrCode, ArrowLeft, Loader2, History } from 'lucide-react';
 import { useAudioFeedback } from './hooks/useAudioFeedback';
 import { QRCodeSVG } from 'qrcode.react';
+import { HistoryModal } from './components/HistoryModal';
+import { saveHistory } from './utils/history';
 
 const DEFAULT_API_URL = 'https://buckshot-marshy-delicacy.ngrok-free.dev/predict';
 
@@ -20,6 +22,8 @@ function App() {
   const [hasStarted, setHasStarted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [apiUrl, setApiUrl] = useState(() => localStorage.getItem('backend_api_url') || DEFAULT_API_URL);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
   
   // const { initAudio, playBeep, vibrate, speak, stopSpeaking } = useAudioFeedback();
   const {
@@ -118,12 +122,12 @@ function App() {
       startCamera();
     }
 
-    if (showSettings) {
+    if (showSettings || showHistory) {
       stopCamera();
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasStarted, showSettings]);
+  }, [hasStarted, showSettings, showHistory]);
 
 
   const sendImageToBackend = async (imageBlob: Blob) => {
@@ -131,6 +135,11 @@ function App() {
     setResultText('');
     setLatency(null);
     stopSpeaking();
+    
+    if (previewImage) {
+      URL.revokeObjectURL(previewImage);
+    }
+    setPreviewImage(URL.createObjectURL(imageBlob));
     
     // Feedback for processing
     vibrate([200, 100, 200]);
@@ -181,6 +190,8 @@ function App() {
       // Đợi beep xong rồi mới đọc, tránh âm beep đè lên giọng đọc
       speak(description, canVibrate ? 500 : 600);
 
+      // Lưu lại kết quả
+      saveHistory({ imageBlob, description, timestamp: Date.now() });
 
     } catch (error) {
       console.error('API Error:', error);
@@ -342,17 +353,32 @@ function App() {
       {/* Top Bar Actions */}
       <div className="absolute top-0 left-0 w-full z-20 flex justify-between p-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
         
-        {/* File Upload Button */}
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            fileInputRef.current?.click();
-          }}
-          className="p-4 bg-black/90 border-2 border-white backdrop-blur-md rounded-full text-white pointer-events-auto shadow-lg active:bg-yellow-300 active:text-black active:scale-95 transition-transform"
-          aria-label="Tải ảnh lên"
-        >
-          <ImageIcon size={28} />
-        </button>
+        <div className="flex space-x-4 pointer-events-auto">
+          {/* File Upload Button */}
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              fileInputRef.current?.click();
+            }}
+            className="p-4 bg-black/90 border-2 border-white backdrop-blur-md rounded-full text-white shadow-lg active:bg-yellow-300 active:text-black active:scale-95 transition-transform"
+            aria-label="Tải ảnh lên"
+          >
+            <ImageIcon size={28} />
+          </button>
+
+          {/* History Button */}
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowHistory(true);
+            }}
+            className="p-4 bg-black/90 border-2 border-white backdrop-blur-md rounded-full text-white shadow-lg active:bg-yellow-300 active:text-black active:scale-95 transition-transform"
+            aria-label="Xem lịch sử"
+          >
+            <History size={28} />
+          </button>
+        </div>
+
         <input 
           type="file" 
           ref={fileInputRef} 
@@ -422,6 +448,23 @@ function App() {
             {resultText}
           </p>
         </div>
+      )}
+
+      {/* Captured Image Preview Zone */}
+      {previewImage && (
+        <div className="absolute bottom-6 right-4 z-20 w-28 h-36 border-4 border-yellow-300 rounded-2xl overflow-hidden shadow-2xl pointer-events-none bg-black/50">
+          <img src={previewImage} alt="Ảnh chân thực" className="w-full h-full object-cover" />
+        </div>
+      )}
+
+      {showHistory && (
+        <HistoryModal 
+          onClose={() => setShowHistory(false)} 
+          onPlay={(text) => {
+            playBeep();
+            speak(text);
+          }}
+        />
       )}
 
     </div>
