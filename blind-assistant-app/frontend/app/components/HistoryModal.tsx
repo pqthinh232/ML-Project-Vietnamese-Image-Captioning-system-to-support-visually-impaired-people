@@ -7,6 +7,32 @@ interface HistoryModalProps {
   onPlay: (text: string) => void;
 }
 
+const HistoryImage = ({ blob }: { blob: Blob }) => {
+  const [url, setUrl] = useState<string>('');
+
+  useEffect(() => {
+    if (blob) {
+      try {
+        const objectUrl = URL.createObjectURL(blob);
+        setUrl(objectUrl);
+        return () => URL.revokeObjectURL(objectUrl);
+      } catch (error) {
+        console.error('Failed to create object URL for blob', error);
+      }
+    }
+  }, [blob]);
+
+  if (!url) return <div className="w-full h-full bg-neutral-800 animate-pulse"></div>;
+
+  return (
+    <img 
+      src={url} 
+      alt="Lịch sử ảnh" 
+      className="w-full h-full object-cover"
+    />
+  );
+};
+
 export function HistoryModal({ onClose, onPlay }: HistoryModalProps) {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,13 +81,8 @@ export function HistoryModal({ onClose, onPlay }: HistoryModalProps) {
               aria-label={`Nghe lại kết quả: ${item.description}`}
             >
               <div className="flex p-4">
-                <div className="w-24 h-24 shrink-0 rounded-xl overflow-hidden bg-neutral-800 mr-4">
-                  <img 
-                    src={URL.createObjectURL(item.imageBlob)} 
-                    alt="Lịch sử ảnh" 
-                    className="w-full h-full object-cover"
-                    onLoad={(e) => URL.revokeObjectURL(e.currentTarget.src)} // free memory once loaded
-                  />
+                <div className="w-24 h-24 shrink-0 rounded-xl overflow-hidden bg-neutral-800 mr-4 flex items-center justify-center">
+                  <HistoryImage blob={item.imageBlob} />
                 </div>
                 <div className="flex-1 overflow-hidden flex flex-col justify-center">
                   <p className="text-white text-lg font-medium leading-snug">

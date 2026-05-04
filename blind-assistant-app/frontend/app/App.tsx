@@ -425,7 +425,7 @@ function App() {
       {/* Replay Result Text Zone (If any result) */}
       {resultText && !isProcessing && (
         <div 
-          className="absolute top-24 left-4 right-4 z-20 bg-black/95 backdrop-blur-lg border-4 border-yellow-300 p-6 rounded-3xl shadow-2xl active:bg-neutral-800 transition-colors cursor-pointer"
+          className="absolute top-24 left-4 right-4 z-20 bg-black/95 backdrop-blur-lg border-4 border-yellow-300 p-5 rounded-3xl shadow-2xl active:bg-neutral-800 transition-colors cursor-pointer max-h-[55vh] overflow-y-auto"
           onClick={(e) => {
             e.stopPropagation();
             playBeep();
@@ -436,15 +436,15 @@ function App() {
           aria-live="polite"
           aria-label={`Kết quả nhận diện: ${resultText}. Chạm để nghe lại.`}
         >
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-base text-yellow-300 font-bold uppercase tracking-wider">
-              Kết quả - Chạm để nghe lại
+          <div className="flex justify-between items-center mb-1">
+            <h3 className="text-sm text-yellow-300 font-bold uppercase tracking-wider">
+              Kết quả - Chạm nghe lại
             </h3>
             {latency !== null && (
               <span className="text-xs text-neutral-500 font-mono">{latency}s</span>
             )}
           </div>
-          <p className="text-2xl md:text-3xl font-bold leading-relaxed text-white mt-3">
+          <p className="text-xl md:text-2xl font-bold leading-relaxed text-white mt-2">
             {resultText}
           </p>
         </div>
@@ -452,7 +452,7 @@ function App() {
 
       {/* Captured Image Preview Zone */}
       {previewImage && (
-        <div className="absolute bottom-6 right-4 z-20 w-28 h-36 border-4 border-yellow-300 rounded-2xl overflow-hidden shadow-2xl pointer-events-none bg-black/50">
+        <div className="absolute bottom-28 right-4 z-20 w-24 h-32 md:w-28 md:h-36 border-4 border-yellow-300 rounded-2xl overflow-hidden shadow-2xl pointer-events-none bg-black/50">
           <img src={previewImage} alt="Ảnh chân thực" className="w-full h-full object-cover" />
         </div>
       )}

@@ -8,7 +8,7 @@ export interface HistoryItem {
 }
 
 const HISTORY_KEY = 'app_history_items';
-const MAX_HISTORY = 10;
+const MAX_HISTORY = 30;
 
 export const saveHistory = async (item: Omit<HistoryItem, 'id'>) => {
   try {
