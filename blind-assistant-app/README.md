@@ -1,1 +1,0 @@
-# blind-assistant-app
