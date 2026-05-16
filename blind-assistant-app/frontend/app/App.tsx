@@ -1,9 +1,15 @@
 import React, { useRef, useState } from 'react';
+<<<<<<< HEAD
 import { Image as ImageIcon, Settings, QrCode, ArrowLeft, Loader2, History } from 'lucide-react';
 import { useAudioFeedback } from './hooks/useAudioFeedback';
 import { QRCodeSVG } from 'qrcode.react';
 import { HistoryModal } from './components/HistoryModal';
 import { saveHistory } from './utils/history';
+=======
+import { Image as ImageIcon, Settings, QrCode, ArrowLeft, Loader2 } from 'lucide-react';
+import { useAudioFeedback } from './hooks/useAudioFeedback';
+import { QRCodeSVG } from 'qrcode.react';
+>>>>>>> backup-my-commits
 
 const DEFAULT_API_URL = 'https://buckshot-marshy-delicacy.ngrok-free.dev/predict';
 
@@ -22,8 +28,11 @@ function App() {
   const [hasStarted, setHasStarted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [apiUrl, setApiUrl] = useState(() => localStorage.getItem('backend_api_url') || DEFAULT_API_URL);
+<<<<<<< HEAD
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+=======
+>>>>>>> backup-my-commits
   
   // const { initAudio, playBeep, vibrate, speak, stopSpeaking } = useAudioFeedback();
   const {
@@ -122,12 +131,20 @@ function App() {
       startCamera();
     }
 
+<<<<<<< HEAD
     if (showSettings || showHistory) {
+=======
+    if (showSettings) {
+>>>>>>> backup-my-commits
       stopCamera();
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
+<<<<<<< HEAD
   }, [hasStarted, showSettings, showHistory]);
+=======
+  }, [hasStarted, showSettings]);
+>>>>>>> backup-my-commits
 
 
   const sendImageToBackend = async (imageBlob: Blob) => {
@@ -136,11 +153,14 @@ function App() {
     setLatency(null);
     stopSpeaking();
     
+<<<<<<< HEAD
     if (previewImage) {
       URL.revokeObjectURL(previewImage);
     }
     setPreviewImage(URL.createObjectURL(imageBlob));
     
+=======
+>>>>>>> backup-my-commits
     // Feedback for processing
     vibrate([200, 100, 200]);
     speak('Đang xử lý hình ảnh, vui lòng đợi.');
@@ -190,8 +210,11 @@ function App() {
       // Đợi beep xong rồi mới đọc, tránh âm beep đè lên giọng đọc
       speak(description, canVibrate ? 500 : 600);
 
+<<<<<<< HEAD
       // Lưu lại kết quả
       saveHistory({ imageBlob, description, timestamp: Date.now() });
+=======
+>>>>>>> backup-my-commits
 
     } catch (error) {
       console.error('API Error:', error);
@@ -353,6 +376,7 @@ function App() {
       {/* Top Bar Actions */}
       <div className="absolute top-0 left-0 w-full z-20 flex justify-between p-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
         
+<<<<<<< HEAD
         <div className="flex space-x-4 pointer-events-auto">
           {/* File Upload Button */}
           <button 
@@ -379,6 +403,19 @@ function App() {
           </button>
         </div>
 
+=======
+        {/* File Upload Button */}
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            fileInputRef.current?.click();
+          }}
+          className="p-4 bg-black/90 border-2 border-white backdrop-blur-md rounded-full text-white pointer-events-auto shadow-lg active:bg-yellow-300 active:text-black active:scale-95 transition-transform"
+          aria-label="Tải ảnh lên"
+        >
+          <ImageIcon size={28} />
+        </button>
+>>>>>>> backup-my-commits
         <input 
           type="file" 
           ref={fileInputRef} 
@@ -425,7 +462,11 @@ function App() {
       {/* Replay Result Text Zone (If any result) */}
       {resultText && !isProcessing && (
         <div 
+<<<<<<< HEAD
           className="absolute top-24 left-4 right-4 z-20 bg-black/95 backdrop-blur-lg border-4 border-yellow-300 p-5 rounded-3xl shadow-2xl active:bg-neutral-800 transition-colors cursor-pointer max-h-[55vh] overflow-y-auto"
+=======
+          className="absolute top-24 left-4 right-4 z-20 bg-black/95 backdrop-blur-lg border-4 border-yellow-300 p-6 rounded-3xl shadow-2xl active:bg-neutral-800 transition-colors cursor-pointer"
+>>>>>>> backup-my-commits
           onClick={(e) => {
             e.stopPropagation();
             playBeep();
@@ -436,20 +477,31 @@ function App() {
           aria-live="polite"
           aria-label={`Kết quả nhận diện: ${resultText}. Chạm để nghe lại.`}
         >
+<<<<<<< HEAD
           <div className="flex justify-between items-center mb-1">
             <h3 className="text-sm text-yellow-300 font-bold uppercase tracking-wider">
               Kết quả - Chạm nghe lại
+=======
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-base text-yellow-300 font-bold uppercase tracking-wider">
+              Kết quả - Chạm để nghe lại
+>>>>>>> backup-my-commits
             </h3>
             {latency !== null && (
               <span className="text-xs text-neutral-500 font-mono">{latency}s</span>
             )}
           </div>
+<<<<<<< HEAD
           <p className="text-xl md:text-2xl font-bold leading-relaxed text-white mt-2">
+=======
+          <p className="text-2xl md:text-3xl font-bold leading-relaxed text-white mt-3">
+>>>>>>> backup-my-commits
             {resultText}
           </p>
         </div>
       )}
 
+<<<<<<< HEAD
       {/* Captured Image Preview Zone */}
       {previewImage && (
         <div className="absolute bottom-28 right-4 z-20 w-24 h-32 md:w-28 md:h-36 border-4 border-yellow-300 rounded-2xl overflow-hidden shadow-2xl pointer-events-none bg-black/50">
@@ -467,6 +519,8 @@ function App() {
         />
       )}
 
+=======
+>>>>>>> backup-my-commits
     </div>
   );
 }
